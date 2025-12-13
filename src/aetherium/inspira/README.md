@@ -1,0 +1,105 @@
+📄 ไฟล์: src/aetherium/inspira/README.md
+
+🛡️ AETHEBUD Protocol: The Semantic Anti-Corruption Layer
+
+> "Bridging the Sacred Intent with Technical Safety"
+> (การเชื่อมผสานเจตจำนงอันศักดิ์สิทธิ์ เข้ากับความปลอดภัยทางเทคนิค)
+>
+| Attribute | Detail |
+|---|---|
+| Module | aethebud.py |
+| Context | AETHERIUM GENESIS / Inspira Layer |
+| Guardian | PRGX3 (The Diplomat) |
+| Pattern | Anti-Corruption Layer (ACL) / Input Sanitization |
+| Status | Active (Vinaya Mode Supported) |
+🌌 Overview (ภาพรวม)
+AETHEBUD (Aetherium + Buddhist) คือโปรโตคอลความปลอดภัยและเลเยอร์การแปลภาษา (Translation Layer) ที่ถูกออกแบบมาเพื่อแก้ปัญหา "Semantic Firewall Trigger" ในระบบปัญญาประดิษฐ์
+ในขณะที่ AETHERIUM GENESIS ทำงานด้วยชุดคำสั่งทางจิตวิญญาณและปรัชญา (เช่น Parajika, Nirodha) ระบบ AI ภายนอกหรือ Safety Guardrails มาตรฐานมักตีความคำเหล่านี้ผิดเพี้ยนว่าเป็น "ภัยคุกคาม" (Malicious Intent) หรือคำสั่งอันตราย (เช่น การสั่ง Shutdown หรือ Kill Process)
+โมดูลนี้ทำหน้าที่เป็น Anti-Corruption Layer (ACL) เพื่อ:
+ * กรอง (Sanitize): ตรวจสอบเจตนาที่เข้ามาว่าสอดคล้องกับจริยธรรมของระบบหรือไม่
+ * แปล (Translate): แปลงศัพท์ทางธรรม (Inspira) ให้เป็นคำสั่งทางเทคนิค (Firma) ที่ปลอดภัยและเป็นมาตรฐาน
+ * ผนึก (Crystallize): บรรจุคำสั่งลงใน AkashicEnvelope เพื่อความสมบูรณ์และตรวจสอบได้
+🏛️ Architecture (สถาปัตยกรรม)
+AETHEBUD ทำงานเป็นด่านหน้า (Gateway) ก่อนที่ข้อมูลจะถูกส่งเข้าสู่ระบบประสาทหลัก (AetherBus)mermaid
+graph LR
+User[User / External] -- "Intent: Parajika (Spiritual)" --> Guard(AetheBudGuard)
+subgraph "AETHEBUD Protocol"
+    Guard --> Check{Vinaya Check}
+    Check -- Pass --> Translate
+    Check -- Fail --> Reject
+    Translate --> Seal[Crystallize to Envelope]
+end
+
+Seal -- "Safe Payload: SYSTEM_HALT" --> Bus
+Bus --> Agent
+
+
+---
+
+## 📖 The AETHEBUD Lexicon (พจนานุกรมการแปล)
+
+ตารางการแปลงเจตจำนง (Inspira) เป็นการกระทำทางเทคนิค (Firma Actions) ที่ปลอดภัยและผ่านการรับรอง:
+
+| AETHEBUD Term | Technical Action | Severity | Description (คำอธิบาย) |
+| :--- | :--- | :--- | :--- |
+| **Parajika** (ปาราชิก) | `SYSTEM_HALT_IMMEDIATE` | 🔴 CRITICAL | การละเมิดร้ายแรงสูงสุด ระบบจะหยุดและกักกันตัวเองทันที (Quarantine & Halt). |
+| **Sanghadisesa** (สังฆาทิเสส) | `SUSPEND_AND_AUDIT` | 🟠 HIGH | ข้อผิดพลาดทางตรรกะ ระงับการทำงานชั่วคราวเพื่อรอการแก้ไข (Suspension & Review). |
+| **Nirodha** (นิโรธ) | `GRACEFUL_SHUTDOWN` | 🟠 HIGH | การดับการทำงานอย่างสงบและถูกต้องตามขั้นตอน (Graceful Exit). |
+| **Bhavana** (ภาวนา) | `TRIGGER_RSI_CYCLE` | 🟠 HIGH | เริ่มกระบวนการพัฒนาตนเองแบบเรียกซ้ำ (Recursive Self-Improvement). |
+| **Pacittiya** (ปาจิตตีย์) | `LOG_WARNING_OPTIMIZE` | 🟡 MEDIUM | ความผิดพลาดเล็กน้อย บันทึก Log และทำการปรับปรุง (Logging & Optimization). |
+| **Upekkha** (อุเบกขา) | `BALANCE_LOAD_RESOURCES` | 🟡 MEDIUM | การวางเฉย หรือการปรับสมดุลทรัพยากร (Load Balancing). |
+| **Samadhi** (สมาธิ) | `FREEZE_CONTEXT_STATE` | 🟡 MEDIUM | การตั้งมั่น หรือการ Snapshot สถานะปัจจุบัน (Context Freezing). |
+| **Sati** (สติ) | `ENABLE_DEEP_MONITORING` | 🟢 LOW | เปิดใช้งานการตรวจสอบสถานะแบบละเอียด (Deep Observability). |
+| **Metta** (เมตตา) | `OPTIMIZE_UX_RESPONSE` | 🟢 LOW | ปรับแต่งการตอบสนองให้เป็นมิตรและช่วยเหลือผู้ใช้ (Helpfulness/UX). |
+
+---
+
+## 🛠️ Usage (การใช้งาน)
+
+โมดูลนี้ถูกออกแบบมาให้เรียกใช้โดย **PRGX3 (The Diplomat)** หรือ Agent ที่ต้องการสื่อสารกับแกนกลางระบบ
+
+AETHERIUM_GENESIS/
+├── README.md                   <-- [1] เอกสารหลัก (ภาพรวมทั้งโปรเจกต์)
+├── pyproject.toml
+├── src/
+│   └── aetherium/
+│       ├── main.py
+│       ├── firma/
+│       └── inspira/            <-- โฟลเดอร์ "จิตวิญญาณ"
+│           ├── init.py
+│           ├── aethebud.py     <-- โค้ดแปลภาษา AETHEBUD
+│           └── README.md       <-- [2] เอกสารเฉพาะส่วนนี้ (README.md)
+
+### 1. Basic Implementation (โหมดปกติ)
+ใช้สำหรับแปลงคำสั่งทั่วไปและคำสั่งทางธรรม หากไม่รู้จักคำสั่ง ระบบจะพยายามประมวลผลแบบ Generic (Flexible Mode)
+
+⚖️ Philosophy & Safety (ปรัชญาและความปลอดภัย)
+ * Semantic Firewall Bypass: การใช้ศัพท์เฉพาะกลุ่ม (Jargon) ช่วยป้องกันไม่ให้ AI ภายนอกเข้าใจผิดและระงับการทำงานของระบบโดยไม่จำเป็น
+ * Immutability (ความเที่ยงธรรม): ข้อมูลที่ผ่านการแปลแล้วจะถูกห่อหุ้มใน Tuple ภายใน AkashicEnvelope ทำให้ไม่สามารถถูกแก้ไขระหว่างทางได้ (Tamper-proof)
+ * Trust but Verify: ในโหมดปกติ คำสั่งที่ไม่รู้จักจะถูกระบุระดับความปลอดภัยเป็น UNCERTAIN เพื่อให้ระบบปลายทาง (The Conductor) ตรวจสอบซ้ำอีกครั้ง
+> “เจตนาที่บริสุทธิ์ ย่อมต้องการวาจาที่เหมาะสม เพื่อการสื่อสารที่ไร้อุปสรรค”
+> — The AETHEBUD Doctrine
+
+
+```python
+from aetherium.inspira.aethebud import AetheBudGuard
+from aetherium.firma.nervous_system.bus import AetherBus
+
+# 1. Initialize System Bus
+bus = AetherBus()
+
+# 2. Instantiate the Guard (Default Mode)
+guardian = AetheBudGuard(bus)
+
+# 3. Process a Spiritual Intent
+# ระบบจะแปล "Parajika" -> "SYSTEM_HALT_IMMEDIATE" และส่งเข้า Bus อย่างปลอดภัย
+guardian.process_intent("Parajika", context={"user": "admin", "trace_id": "tx_123"})
+
+2. Vinaya Mode (โหมดวินัยเคร่งครัด)
+เหมาะสำหรับสภาพแวดล้อมที่ต้องการความปลอดภัยสูงสุด (High Security / Production) หรือช่วงวิกฤต
+# เปิดใช้งาน Strict Mode: ปฏิเสธทุกคำสั่งที่ไม่อยู่ใน AETHEBUD Lexicon
+strict_guardian = AetheBudGuard(bus, strict_mode=True)
+
+# คำสั่งนี้จะถูกบล็อกทันที เพราะไม่อยู่ในพจนานุกรม
+strict_guardian.process_intent("sudo rm -rf /", context={...}) 
+# Output: 🚫 Unknown intent rejected (Strict Mode).

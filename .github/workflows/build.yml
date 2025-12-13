@@ -1,0 +1,32 @@
+name: Build and Test Aetherium Genesis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. ⚙️ Checkout Codebase
+      # เปลี่ยนจาก actions/checkout@v4 เป็น Full Commit SHA ของ v4
+    - name: ⚙️ Checkout Codebase
+      uses: actions/checkout@0f2a7bc72297127b3d39589d816172605f6b8b7e # [Commit SHA ล่าสุดของ actions/checkout@v4]
+    
+      # 2. 🐍 Set up Python 3.11
+      # เปลี่ยนจาก actions/setup-python@v6 เป็น Full Commit SHA ของ v6
+    - name: 🐍 Set up Python 3.11
+      uses: actions/setup-python@916a086801933cc4852f864e493390c58a8a4f15 # [Commit SHA ล่าสุดของ actions/setup-python@v6]
+      with:
+        python-version: "3.11"
+        
+    - name: 📦 Install Dependencies
+      run: pip install -r requirements.txt
+    
+    - name: 🧪 Run Unit Tests (GEP Audit Check)
+      run: |
+        # 🎯 แก้ไข Structural Conflict: กำหนด PYTHONPATH ให้เท่ากับ Root Directory
+        PYTHONPATH=. pytest --cov=.

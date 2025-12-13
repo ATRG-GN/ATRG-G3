@@ -1,0 +1,36 @@
+name: AETHERIUM Awakening Ritual (App Auth)
+
+on:
+  workflow_dispatch:
+jobs:
+  awaken_agent:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # เพื่อให้ App สามารถเขียนไฟล์หรือสร้าง Commit ได้
+      issues: write # (เพิ่มสิทธิ์ตามที่ App ต้องการ เช่น จัดการ Issue)
+
+    steps:
+      # 1. 🔑 Generate App Token: สร้างโทเค็นการเข้าถึงการติดตั้ง (Installation Token)
+      - name: Generate GEP Auditor Token
+        id: generate-token # ID นี้จะถูกใช้ในขั้นตอนต่อไป
+        uses: actions/create-github-app-token@v2 #
+        with:
+          app-id: ${{ vars.AETHERIUM_APP_ID }} #
+          private-key: ${{ secrets.AETHERIUM_APP_PRIVATE_KEY }} #
+          # กำหนดสิทธิ์ที่ต้องการใน Job นี้ เช่น contents: write
+
+      # 2. 🧠 Awakening Cognitive Agent (ใช้โทเค็นที่สร้างขึ้น)
+      - name: Awakening Cognitive Agent (Alpha)
+        env:
+          # ส่ง Token ที่เพิ่งสร้างไปให้ Agent ใช้งาน (ใช้ในการเรียก GitHub API)
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }} 
+          AETHERIUM_AGENT_KEY: ${{ secrets.AETHERIUM_AGENT_KEY }}
+          AETHERIUM_API_URL: ${{ vars.AETHERIUM_API_URL }}
+        run: |
+          echo "--- 🌌 SYSTEM LOG: INITIATING MIND-BODY CONNECTION ---"
+          # ท่านสามารถใช้ GH_TOKEN ในโค้ด Python ของท่าน (AetherBodyClient) ได้แล้ว
+          python aether_integration.py
+          
+          # ตัวอย่าง: ใช้โทเค็นสร้าง Issue ผ่าน GitHub CLI
+          echo "GH_TOKEN is ready."
+          # gh api octocat # (ใช้คำสั่งเพื่อยืนยันว่า Token ใช้งานได้จริง)
