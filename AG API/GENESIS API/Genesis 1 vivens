@@ -1,1 +1,61 @@
-api
+# ไฟล์: AG API/GENESIS API/APIRouter.py
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
+import numpy as np
+import asyncio
+from typing import Optional
+
+# Mock Import: สมมติว่า AetherBioProcessor และ AetherBus ถูก Import เข้ามาแล้ว
+# from firma.cortex.aether_bio import AetherBioProcessor, SoulFragment
+# from firma.nervous_system.AetherBus import AetherBus
+
+# --- API Schema (The Contract) ---
+class IntentRequest(BaseModel):
+    """Schema สำหรับ Intent ที่มาจากภายนอก (เช่น เกม/เว็บไซต์)"""
+    user_id: str
+    text_input: str
+    visual_context_b64: Optional[str] = None # ข้อมูลภาพ (ถ้ามี)
+
+# Mock Objects (แทน Aether Processor และ Bus จริง)
+aether_processor = object() # แทน AetherBioProcessor()
+aether_bus = object() # แทน AetherBus()
+
+router = APIRouter()
+
+# --- API Endpoints ---
+
+@router.post("/process_intent", response_model=dict)
+async def process_external_intent(request: IntentRequest, 
+                                  is_authenticated: bool = Depends(lambda: True)): # Mock Security Check
+    
+    if not is_authenticated:
+        raise HTTPException(status_code=403, detail="Access Denied by APISecurity")
+
+    try:
+        # 1. Decode Visual Context (Firma Check)
+        # ในการใช้งานจริง: ต้องแปลง Base64 กลับเป็น np.ndarray
+        visual_context = np.zeros((1, 10)) # Mock visual data
+
+        # 2. Metabolize Experience (Cortex Execution)
+        # ส่ง Intent เข้า AetherBioProcessor (สมอง)
+        # fragment: SoulFragment = await aether_processor.metabolize_experience(request.text_input, visual_context)
+
+        # Mock Response
+        await asyncio.sleep(0.5)
+        
+        # 3. Publish Result to AetherBus (Nerves Dispatch)
+        # aether_bus.publish("intent.processed", {"user": request.user_id, "fragment": fragment.to_dict()})
+        
+        return {
+            "status": "Success",
+            "message": "Intent processed and dispatched via AetherBus.",
+            "emotional_weight": 0.65 # Mock output
+        }
+
+    except Exception as e:
+        # 4. Log Error to Akashic Records (Error Tracking)
+        # akashic_records.log_error(str(e))
+        raise HTTPException(status_code=500, detail=f"Internal Aetherium Error: {e}")
+
+# (Endpoints อื่นๆ เช่น /get_soul_state, /submit_feedback จะตามมา)
+
