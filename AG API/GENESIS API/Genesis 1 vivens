@@ -57,4 +57,4 @@ async def process_external_intent(request: IntentRequest,
         # akashic_records.log_error(str(e))
         raise HTTPException(status_code=500, detail=f"Internal Aetherium Error: {e}")
 
-# (Endpoints อื่นๆ เช่น /get_soul_state, /submit_feedback จะตามมา) 
+# (Endpoints อื่นๆ เช่น /get_soul_state, /submit_feedback จะตามมา)
