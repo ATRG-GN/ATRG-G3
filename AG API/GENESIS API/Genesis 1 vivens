@@ -1,4 +1,4 @@
-# ไฟล์: AG API/GENESIS API/APIRouter.py
+# ไฟล์: AG API/GENESIS API/APIRouter2.py
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import numpy as np
@@ -58,5 +58,3 @@ async def process_external_intent(request: IntentRequest,
         raise HTTPException(status_code=500, detail=f"Internal Aetherium Error: {e}")
 
 # (Endpoints อื่นๆ เช่น /get_soul_state, /submit_feedback จะตามมา)
-
-
