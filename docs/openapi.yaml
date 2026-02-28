@@ -1,0 +1,530 @@
+openapi: 3.1.0
+info:
+  title: Aetherium Platform API
+  version: 1.0.0
+  summary: Governance-first API for multi-agent orchestration
+  description: |
+    Production contract for Aetherium platform.
+    Covers tenant-scoped operations, governance decisions, events, and runtime health.
+servers:
+  - url: https://api.aetherium.example.com
+    description: Production
+  - url: https://staging-api.aetherium.example.com
+    description: Staging
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: Health
+  - name: Agents
+  - name: Intents
+  - name: Events
+  - name: Governance
+security:
+  - ApiKeyAuth: []
+paths:
+  /v1/health:
+    get:
+      tags: [Health]
+      summary: Service health status
+      operationId: getHealth
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/readiness:
+    get:
+      tags: [Health]
+      summary: Readiness probe
+      operationId: getReadiness
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProbeResponse'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/liveness:
+    get:
+      tags: [Health]
+      summary: Liveness probe
+      operationId: getLiveness
+      responses:
+        '200':
+          description: Alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProbeResponse'
+  /v1/agents:
+    get:
+      tags: [Agents]
+      summary: List registered agents
+      operationId: listAgents
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/AgentStatus'
+      responses:
+        '200':
+          description: Agent collection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Agent'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Agents]
+      summary: Register new agent
+      operationId: createAgent
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Agent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/agents/{agentId}:
+    get:
+      tags: [Agents]
+      summary: Get agent by ID
+      operationId: getAgent
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Agent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Agents]
+      summary: Update agent status/config
+      operationId: updateAgent
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAgentRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Agent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/intents:
+    post:
+      tags: [Intents]
+      summary: Submit a tenant-scoped intent
+      operationId: submitIntent
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitIntentRequest'
+      responses:
+        '202':
+          description: Accepted for governance pipeline
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Intent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Duplicate idempotency key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/intents/{intentId}:
+    get:
+      tags: [Intents]
+      summary: Get intent status and governance decision
+      operationId: getIntent
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - $ref: '#/components/parameters/IntentId'
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Intent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/events:
+    get:
+      tags: [Events]
+      summary: Query event log by tenant and time range
+      operationId: listEvents
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event collection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+  /v1/governance/decisions/{intentId}:
+    get:
+      tags: [Governance]
+      summary: Fetch governance policy decision for an intent
+      operationId: getGovernanceDecision
+      parameters:
+        - $ref: '#/components/parameters/XTenantId'
+        - $ref: '#/components/parameters/IntentId'
+      responses:
+        '200':
+          description: Decision details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/GovernanceDecision'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  parameters:
+    XTenantId:
+      in: header
+      name: x-tenant-id
+      required: true
+      schema:
+        type: string
+      description: Tenant identifier for data isolation
+    XRequestId:
+      in: header
+      name: x-request-id
+      required: false
+      schema:
+        type: string
+      description: Correlation ID for distributed tracing
+    AgentId:
+      in: path
+      name: agentId
+      required: true
+      schema:
+        type: string
+    IntentId:
+      in: path
+      name: intentId
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailable:
+      description: Dependency unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, service, version, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        service:
+          type: string
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        dependencies:
+          type: object
+          additionalProperties:
+            type: string
+    ProbeResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    AgentStatus:
+      type: string
+      enum: [active, paused, disabled]
+    Agent:
+      type: object
+      required: [id, name, type, status, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+        config:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateAgentRequest:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        config:
+          type: object
+          additionalProperties: true
+    UpdateAgentRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+        config:
+          type: object
+          additionalProperties: true
+    SubmitIntentRequest:
+      type: object
+      required: [actorId, action, payload]
+      properties:
+        actorId:
+          type: string
+        action:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        priority:
+          type: string
+          enum: [low, normal, high, critical]
+          default: normal
+        idempotencyKey:
+          type: string
+    Intent:
+      type: object
+      required: [id, actorId, action, payload, status, createdAt]
+      properties:
+        id:
+          type: string
+        actorId:
+          type: string
+        action:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [submitted, approved, rejected, executing, completed, failed]
+        governanceDecision:
+          $ref: '#/components/schemas/GovernanceDecision'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    GovernanceDecision:
+      type: object
+      required: [result, policiesEvaluated, decidedAt]
+      properties:
+        result:
+          type: string
+          enum: [approved, rejected, manual_review]
+        reason:
+          type: string
+        policiesEvaluated:
+          type: array
+          items:
+            type: string
+        riskScore:
+          type: number
+          format: float
+        decidedBy:
+          type: string
+        decidedAt:
+          type: string
+          format: date-time
+    Event:
+      type: object
+      required: [id, type, source, occurredAt]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        source:
+          type: string
+        traceId:
+          type: string
+        intentId:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        occurredAt:
+          type: string
+          format: date-time
+    PaginationMeta:
+      type: object
+      properties:
+        nextCursor:
+          type: string
+        total:
+          type: integer
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+        traceId:
+          type: string
+webhooks:
+  intentStatusChanged:
+    post:
+      summary: Push-based notification when intent status changes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Intent'
+      responses:
+        '200':
+          description: Webhook consumed
+x-websocket:
+  path: /v1/ws/events
+  protocol: json
+  handshake:
+    headers:
+      - name: x-api-key
+      - name: x-tenant-id
+  messageSchema:
+    oneOf:
+      - $ref: '#/components/schemas/Event'
+      - $ref: '#/components/schemas/ErrorResponse'
