@@ -23,6 +23,7 @@ def clean_conductor():
 
     conductor = AetherConductor()
     conductor.channels.clear()
+    conductor._background_tasks.clear()
     conductor.trust_scores = {
         AISource.HUMAN_ARCHITECT: 100,
         AISource.GEMINI_CORE: 95,

@@ -25,6 +25,7 @@ class AetherConductor:
             # --- Job Registry ---
             cls._instance._job_registry = {}
             cls._instance._lock = None
+            cls._instance._background_tasks = set()
 
         return cls._instance
 
@@ -47,12 +48,22 @@ class AetherConductor:
 
         # 3. Dispatch (Async)
         if topic in self.channels:
-            # Create tasks but don't strictly wait (fire and forget pattern for speed, or wait if needed)
-            # Using asyncio.wait to ensure execution within this tick if needed,
-            # or we can gather. For now, preserving existing logic:
-            tasks = [asyncio.create_task(h(envelope)) for h in self.channels[topic]]
-            if tasks:
-                await asyncio.wait(tasks)
+            # Fire-and-forget dispatch:
+            # keep references to prevent tasks from being garbage-collected
+            # before completion, then log handler errors asynchronously.
+            for handler in self.channels[topic]:
+                task = asyncio.create_task(handler(envelope))
+                self._background_tasks.add(task)
+
+                def _on_done(completed_task: asyncio.Task):
+                    self._background_tasks.discard(completed_task)
+                    if completed_task.cancelled():
+                        return
+                    exc = completed_task.exception()
+                    if exc:
+                        print(f"[Conductor] ❌ Handler error on '{topic}': {exc}")
+
+                task.add_done_callback(_on_done)
 
     # --- Job Registry Methods (The Governance Layer) ---
 
