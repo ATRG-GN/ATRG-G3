@@ -42,3 +42,15 @@
 - เพิ่ม JWT/OAuth2 verifier ใน `security/`
 - ผูก OpenTelemetry span ใน event publish/route paths
 - แยก plugin manifests (yaml/json) เพื่อให้โหลด plugin ตาม environment
+
+
+## Platform Evolution Roadmap
+
+| Phase | Enhancement | Architectural intent |
+| --- | --- | --- |
+| **Phase 1** | Modular core + API | Stabilize kernel/plugin boundaries and expose platform APIs |
+| **Phase 2** | Distributed node cluster | Introduce clustering, node discovery, and resilient event transport |
+| **Phase 3** | AI-native orchestration | Promote AI adapters to first-class orchestration decision layer |
+| **Phase 4** | Multi-tenant cloud platform | Add tenant isolation, policy domains, and cloud control plane capabilities |
+
+แนวทางนี้ทำให้ `Aetherium Core` ค่อย ๆ evolve เป็น **Aetherium Platform** แบบเต็มรูปแบบ โดยไม่ต้อง rewrite ระบบทั้งหมดในครั้งเดียว

@@ -1,4 +1,4 @@
-# 🌌 AETHERIUM-GENESIS
+# 🌌 AETHERIUM PLATFORM (formerly AETHERIUM-GENESIS)
 
 > *"Pioneering New Realities via Code & Capital under the Inspira-Firma Philosophy"*
 
@@ -11,7 +11,7 @@
 
 ## 📖 เกี่ยวกับโปรเจกต์ (Overview)
 
-**AETHERIUM-GENESIS** ไม่ใช่เพียงแค่ Software Project แต่คือ **"ระบบจำลองสังคมดิจิทัล" (Digital Society Simulation)** ที่ขับเคลื่อนด้วย **Multi-Agent System** ภายใต้กฎระเบียบที่เข้มงวด (Governance Protocols)
+**AETHERIUM PLATFORM** ไม่ใช่เพียงแค่ Software Project แต่คือ **"ระบบจำลองสังคมดิจิทัล" (Digital Society Simulation)** ที่ขับเคลื่อนด้วย **Multi-Agent System** ภายใต้กฎระเบียบที่เข้มงวด (Governance Protocols)
 
 หัวใจสำคัญของระบบคือการผสาน **Logic (ตรรกะ)** เข้ากับ **Ethics (จริยธรรม)** ผ่านระบบภูมิคุ้มกันดิจิทัล (Digital Immune System) ที่คอยตรวจสอบทุกธุรกรรมและการกระทำ เพื่อให้มั่นใจว่าเป็นไปตามปรัชญา "Collective Understanding"
 
@@ -40,4 +40,16 @@
 * รองรับ Plugin lifecycle + dynamic loading + async event bus
 * ดูรายละเอียดที่ `docs_architecture_modular_microkernel.md`
 
+---
+
+## 🧭 Aetherium Platform Roadmap (Long-term)
+
+| Phase | Enhancement |
+| --- | --- |
+| **Phase 1** | Modular core + API |
+| **Phase 2** | Distributed node cluster |
+| **Phase 3** | AI-native orchestration |
+| **Phase 4** | Multi-tenant cloud platform |
+
+> เป้าหมายคือการยกระดับจากโครงสร้าง simulation core ไปสู่ **Aetherium Platform** ที่พร้อมสำหรับ production-grade orchestration และการขยายระบบหลายองค์กรในอนาคต
 
