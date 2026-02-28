@@ -4,6 +4,17 @@ import hashlib
 import json
 from typing import Any, Optional
 
+
+def _normalize_for_signature(value: Any) -> Any:
+    """แปลงข้อมูลให้เป็นรูปแบบที่ serialize ได้คงที่สำหรับการสร้างลายเซ็น"""
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {k: _normalize_for_signature(v) for k, v in sorted(value.items())}
+    if isinstance(value, list):
+        return [_normalize_for_signature(item) for item in value]
+    return value
+
 class AkashicEnvelope(BaseModel):
     """
     DNA ของระบบ: บันทึกข้อมูลแบบ Immutable (แก้ไขไม่ได้)
@@ -29,8 +40,17 @@ class AkashicEnvelope(BaseModel):
         
         # ดึงข้อมูลดิบมา Hash
         data = info.data
-        raw_string = f"{data.get('id')}{data.get('timestamp')}{data.get('intent')}{data.get('payload')}"
-        return hashlib.sha256(raw_string.encode()).hexdigest()
+        signature_payload = {
+            "id": data.get("id"),
+            "timestamp": _normalize_for_signature(data.get("timestamp")),
+            "intent": data.get("intent"),
+            "actor": data.get("actor"),
+            "action_type": data.get("action_type"),
+            "payload": _normalize_for_signature(data.get("payload")),
+            "previous_hash": data.get("previous_hash"),
+        }
+        canonical_json = json.dumps(signature_payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        return hashlib.sha256(canonical_json.encode()).hexdigest()
 
 class AkashicLedger:
     """
