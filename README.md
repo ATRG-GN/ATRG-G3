@@ -39,6 +39,7 @@
 * เพิ่มโครงสร้าง `aetherium_core/` สำหรับ Core Engine แบบ Modular/Microkernel
 * รองรับ Plugin lifecycle + dynamic loading + async event bus
 * ดูรายละเอียด architecture + refactor roadmap ที่ `docs_architecture_modular_microkernel.md`
+* ดูเอกสาร System Architecture & Design (Aetherium Core Driver) ที่ `docs/system_architecture_design.md`
 
 ---
 
