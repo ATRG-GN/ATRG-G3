@@ -24,7 +24,7 @@ class AetherConductor:
             }
             # --- Job Registry ---
             cls._instance._job_registry = {}
-            cls._instance._lock = asyncio.Lock()
+            cls._instance._lock = None
 
         return cls._instance
 
@@ -56,13 +56,20 @@ class AetherConductor:
 
     # --- Job Registry Methods (The Governance Layer) ---
 
+    async def _get_lock(self) -> asyncio.Lock:
+        """Lazily initialize lock when running inside an async context."""
+        if self._lock is None:
+            self._lock = asyncio.Lock()
+        return self._lock
+
     async def register_job(self, intent_data: Dict[str, Any], initial_status: str = "INTENT_GENERATED") -> str:
         """
         Registers a new Intent as a Job.
         """
         job_id = intent_data.get('id', str(uuid.uuid4()))
+        lock = await self._get_lock()
 
-        async with self._lock:
+        async with lock:
             if job_id not in self._job_registry:
                 self._job_registry[job_id] = {
                     "intent": intent_data,
@@ -77,7 +84,8 @@ class AetherConductor:
 
     async def update_job_status(self, job_id: str, new_status: str, note: str = "") -> bool:
         """ Updates the status of a tracked Job. """
-        async with self._lock:
+        lock = await self._get_lock()
+        async with lock:
             if job_id in self._job_registry:
                 self._job_registry[job_id]["status"] = new_status
                 self._job_registry[job_id]["history"].append({
@@ -91,7 +99,8 @@ class AetherConductor:
 
     async def get_job_status(self, job_id: str) -> Optional[Dict[str, Any]]:
         """ Retrieves job details. """
-        async with self._lock:
+        lock = await self._get_lock()
+        async with lock:
             # Return a copy to prevent mutation outside lock
             data = self._job_registry.get(job_id)
             if data:
