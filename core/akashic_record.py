@@ -63,7 +63,17 @@ class AkashicLedger:
         # ตรวจสอบความถูกต้องก่อนบันทึก
         if len(self._chain) > 0:
             last_record = self._chain[-1]
-            # (ในระบบจริงต้องเช็ค previous_hash)
+            expected_previous_hash = last_record.signature
+
+            if envelope.previous_hash != expected_previous_hash:
+                raise ValueError(
+                    "Invalid previous_hash: expected hash of the latest record"
+                )
+
+        elif envelope.previous_hash is not None:
+            raise ValueError(
+                "Invalid previous_hash: genesis record must not reference a previous hash"
+            )
         
         self._chain.append(envelope)
         print(f"📜 [AKASHIC]: Recorded Action '{envelope.action_type}' by {envelope.actor} | Hash: {envelope.signature[:8]}...")
