@@ -11,33 +11,22 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      # 1. ⚙️ ดูโค้ดเบส (Checkout)
-      # ใช้ Full Commit SHA ของ v4 เพื่อความปลอดภัยสูงสุด (Firma Rule)
       - name: ⚙️ ตรวจสอบโค้ดเบส
-        uses: actions/checkout@0f2a7bc72297127b3d39589d816172605f6b8b7e # v4.1.1
+        uses: actions/checkout@v4
 
-      # 2. 🐍 ติดตั้ง Python 3.11
       - name: 🐍 ตั้งค่า Python 3.11
-        uses: actions/setup-python@916a086801933cc4852f864e493390c58a8a4f15 # v5.0.0 (User specified context)
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-        
+
       - name: 📦 ติดตั้งส่วนประกอบที่จำเป็น
         run: pip install -r requirements.txt
-    
+
       - name: 🧪 รัน Unit Tests (GEP Audit Check)
         run: |
-          # 🎯 การยิง Structural Conflict: กำหนด PYTHONPATH ให้เท่ากับ Root Directory
           PYTHONPATH=. pytest --cov=.
 
-      # -------------------------------------------------------
-      # 3. 📤 อัปโหลด Artifact (จุดที่ท่านสั่งแก้ไข) #1
-      # เปลี่ยนจาก v3 -> v4 ตามคำสั่ง Root
-      # หมายเหตุ: หาก v4 ยังไม่ Stable แนะนำให้ใช้ SHA ของ v3 ล่าสุดแทน
-      # -------------------------------------------------------
       - name: 📤 Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: . # หรือระบุ path ที่ build แล้ว เช่น 'site/' หรือ 'public/'
-
-
+          path: .
