@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import uuid
 import time
 from collections import defaultdict
@@ -115,7 +116,7 @@ class AetherConductor:
             # Return a copy to prevent mutation outside lock
             data = self._job_registry.get(job_id)
             if data:
-                return data.copy()
+                return copy.deepcopy(data)
             return None
 
 conductor = AetherConductor()

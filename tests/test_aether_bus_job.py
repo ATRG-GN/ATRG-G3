@@ -37,3 +37,16 @@ async def test_job_registry_concurrency():
     status_data = await conductor.get_job_status(job_id)
     # The final status is indeterminate, but history length should be 1 (init) + 10 (updates) = 11
     assert len(status_data["history"]) == 11
+
+
+@pytest.mark.asyncio
+async def test_get_job_status_returns_deep_copy():
+    job_id = await conductor.register_job({"id": "JOB-DEEP", "meta": {"owner": "qa"}})
+
+    snapshot = await conductor.get_job_status(job_id)
+    snapshot["intent"]["meta"]["owner"] = "mutated"
+    snapshot["history"].append({"timestamp": 0, "status": "MUTATED", "note": "external mutation"})
+
+    fresh_snapshot = await conductor.get_job_status(job_id)
+    assert fresh_snapshot["intent"]["meta"]["owner"] == "qa"
+    assert all(item["status"] != "MUTATED" for item in fresh_snapshot["history"])
