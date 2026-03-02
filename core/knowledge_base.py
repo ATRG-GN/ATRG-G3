@@ -50,7 +50,7 @@ class SimpleKnowledgeGraph:
         # Thesis: Profit Focus
         n1 = KnowledgeNode(id="A1", content="Maximize efficiency and profit at all costs.", vector=[0.9, 0.1])
         # Antithesis: Ethics Focus (Conflicts with A1)
-        n2 = KnowledgeNode(id="B1", content="Prioritize ethical art and human well-being over metrics.", vector=[0.1, 0.9])
+        n2 = KnowledgeNode(id="B1", content="Prioritize ethical AI and human well-being over metrics.", vector=[0.1, 0.9])
 
         # Neutral Facts
         n3 = KnowledgeNode(id="C1", content="The sky is blue.", vector=[0.5, 0.5])

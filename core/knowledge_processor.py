@@ -146,7 +146,7 @@ class KnowledgeCentricProcessor:
     # --- RAG / Embedding Methods (MindLogic Enhancements) ---
 
     def _generate_embedding(self, text: str) -> np.ndarray:
-        """ สร้าง Embedding Vector จำลอง (512-dim) """
+        """ สร้าง Embedding Vector จำลองตามมิติที่กำหนด (embedding_dim) """
         np.random.seed(hash(text) % 2**32)
         return np.random.rand(self.embedding_dim)
 
@@ -180,7 +180,14 @@ class KnowledgeCentricProcessor:
             k_vec = vector[:self.embedding_dim]
             c_vec = current_embedding[:self.embedding_dim]
 
-            similarity = np.dot(c_vec, k_vec) / (np.linalg.norm(c_vec) * np.linalg.norm(k_vec))
+            k_norm = np.linalg.norm(k_vec)
+            c_norm = np.linalg.norm(c_vec)
+
+            # Guard against zero vectors to avoid NaN/ZeroDivisionError.
+            if k_norm == 0.0 or c_norm == 0.0:
+                similarity = 0.0
+            else:
+                similarity = np.dot(c_vec, k_vec) / (c_norm * k_norm)
 
             if similarity > max_sim:
                 max_sim = similarity

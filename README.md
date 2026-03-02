@@ -51,7 +51,7 @@ Aetherium คือแพลตฟอร์ม orchestration สำหรับ 
 ### 3.2 Install
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -59,7 +59,7 @@ pip install -r requirements.txt
 ### 3.3 Run tests
 
 ```bash
-pytest -q
+python3 -m pytest -q
 ```
 
 ### 3.4 Run web console (development)
@@ -91,7 +91,7 @@ Scope ครอบคลุม:
 สามารถ validate ได้ด้วย:
 
 ```bash
-python -c "import yaml; yaml.safe_load(open('docs/openapi.yaml'))"
+python3 -c "import yaml; yaml.safe_load(open('docs/openapi.yaml'))"
 ```
 
 ---
@@ -114,7 +114,7 @@ Run MVP:
 
 ```bash
 cd examples/mvp_template
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 8080 --reload

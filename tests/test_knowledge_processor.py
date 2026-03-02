@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 from core.knowledge_base import SimpleKnowledgeGraph, KnowledgeNode
 from core.knowledge_processor import KnowledgeCentricProcessor, SimpleVectorDB
@@ -50,3 +51,16 @@ def test_graph_structure():
 
     conflicts = graph.get_related_ids("A1", "conflicts_with")
     assert "B1" in conflicts
+
+
+def test_rag_retrieve_handles_zero_vector():
+    kcp = KnowledgeCentricProcessor()
+    zero = [0.0] * kcp.embedding_dim
+
+    # Insert zero-vector knowledge to ensure cosine similarity path is safe.
+    kcp.add_knowledge("zero-knowledge", np.array(zero), source="test", dim=kcp.embedding_dim)
+
+    key, similarity = kcp.rag_retrieve(np.array(zero))
+
+    assert key == ""
+    assert similarity == 0.0
