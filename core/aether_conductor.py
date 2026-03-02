@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import uuid
 import time
 from collections import defaultdict
@@ -24,7 +25,8 @@ class AetherConductor:
             }
             # --- Job Registry ---
             cls._instance._job_registry = {}
-            cls._instance._lock = asyncio.Lock()
+            cls._instance._lock = None
+            cls._instance._background_tasks = set()
 
         return cls._instance
 
@@ -47,22 +49,39 @@ class AetherConductor:
 
         # 3. Dispatch (Async)
         if topic in self.channels:
-            # Create tasks but don't strictly wait (fire and forget pattern for speed, or wait if needed)
-            # Using asyncio.wait to ensure execution within this tick if needed,
-            # or we can gather. For now, preserving existing logic:
-            tasks = [asyncio.create_task(h(envelope)) for h in self.channels[topic]]
-            if tasks:
-                await asyncio.wait(tasks)
+            # Fire-and-forget dispatch:
+            # keep references to prevent tasks from being garbage-collected
+            # before completion, then log handler errors asynchronously.
+            for handler in self.channels[topic]:
+                task = asyncio.create_task(handler(envelope))
+                self._background_tasks.add(task)
+
+                def _on_done(completed_task: asyncio.Task):
+                    self._background_tasks.discard(completed_task)
+                    if completed_task.cancelled():
+                        return
+                    exc = completed_task.exception()
+                    if exc:
+                        print(f"[Conductor] ❌ Handler error on '{topic}': {exc}")
+
+                task.add_done_callback(_on_done)
 
     # --- Job Registry Methods (The Governance Layer) ---
+
+    async def _get_lock(self) -> asyncio.Lock:
+        """Lazily initialize lock when running inside an async context."""
+        if self._lock is None:
+            self._lock = asyncio.Lock()
+        return self._lock
 
     async def register_job(self, intent_data: Dict[str, Any], initial_status: str = "INTENT_GENERATED") -> str:
         """
         Registers a new Intent as a Job.
         """
         job_id = intent_data.get('id', str(uuid.uuid4()))
+        lock = await self._get_lock()
 
-        async with self._lock:
+        async with lock:
             if job_id not in self._job_registry:
                 self._job_registry[job_id] = {
                     "intent": intent_data,
@@ -77,7 +96,8 @@ class AetherConductor:
 
     async def update_job_status(self, job_id: str, new_status: str, note: str = "") -> bool:
         """ Updates the status of a tracked Job. """
-        async with self._lock:
+        lock = await self._get_lock()
+        async with lock:
             if job_id in self._job_registry:
                 self._job_registry[job_id]["status"] = new_status
                 self._job_registry[job_id]["history"].append({
@@ -91,11 +111,12 @@ class AetherConductor:
 
     async def get_job_status(self, job_id: str) -> Optional[Dict[str, Any]]:
         """ Retrieves job details. """
-        async with self._lock:
+        lock = await self._get_lock()
+        async with lock:
             # Return a copy to prevent mutation outside lock
             data = self._job_registry.get(job_id)
             if data:
-                return data.copy()
+                return copy.deepcopy(data)
             return None
 
 conductor = AetherConductor()

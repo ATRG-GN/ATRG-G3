@@ -27,6 +27,7 @@ async def test_subscribe_and_publish(clean_conductor):
     )
 
     await clean_conductor.publish("test.topic", env)
+    await asyncio.sleep(0.01)
 
     assert len(received_envelopes) == 1
     assert received_envelopes[0].payload["msg"] == "hello Architect"
@@ -49,6 +50,7 @@ async def test_quarantine_mode(clean_conductor):
     )
 
     await clean_conductor.publish("unsafe.topic", env)
+    await asyncio.sleep(0.01)
 
     assert len(received_envelopes) == 1
     assert received_envelopes[0].payload.get("_quarantine") is True
@@ -70,7 +72,33 @@ async def test_multiple_subscribers(clean_conductor):
     )
 
     await clean_conductor.publish("multi", env)
+    await asyncio.sleep(0.01)
 
     assert "h1" in results
     assert "h2" in results
     assert len(results) == 2
+
+
+@pytest.mark.asyncio
+async def test_publish_is_fire_and_forget(clean_conductor):
+    completed = []
+
+    async def slow_handler(_):
+        await asyncio.sleep(0.05)
+        completed.append("done")
+
+    await clean_conductor.subscribe("fast.return", slow_handler)
+
+    start = asyncio.get_running_loop().time()
+    await clean_conductor.publish("fast.return", Envelope(
+        intent=AetherIntent.SHARE_INFO,
+        sender_id="tester",
+        payload={"content": "Architect"}
+    ))
+    elapsed = asyncio.get_running_loop().time() - start
+
+    assert elapsed < 0.05
+    assert completed == []
+
+    await asyncio.sleep(0.06)
+    assert completed == ["done"]
