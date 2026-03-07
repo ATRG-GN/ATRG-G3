@@ -189,7 +189,7 @@ class KnowledgeCentricProcessor:
             else:
                 similarity = np.dot(c_vec, k_vec) / (c_norm * k_norm)
 
-            if similarity > max_sim:
+            if similarity > 0.0 and similarity > max_sim:
                 max_sim = similarity
                 best_key = key
 
