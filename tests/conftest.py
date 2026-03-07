@@ -7,6 +7,35 @@ from core.aether_conductor import AetherConductor
 from core.signature import AISource
 
 
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "asyncio: mark test as asyncio coroutine")
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_pyfunc_call(pyfuncitem):
+    """Run async tests without depending on external pytest-asyncio plugin."""
+    test_fn = pyfuncitem.obj
+
+    if not asyncio.iscoroutinefunction(test_fn):
+        return None
+
+    loop = pyfuncitem.funcargs.get("event_loop")
+    if loop is None:
+        loop = asyncio.new_event_loop()
+        try:
+            
+            kwargs = {name: pyfuncitem.funcargs[name] for name in pyfuncitem._fixtureinfo.argnames}
+            loop.run_until_complete(test_fn(**kwargs))
+        finally:
+            loop.close()
+    else:
+        
+            kwargs = {name: pyfuncitem.funcargs[name] for name in pyfuncitem._fixtureinfo.argnames}
+            loop.run_until_complete(test_fn(**kwargs))
+
+    return True
+
 @pytest.fixture(scope="session")
 def event_loop():
     loop = asyncio.new_event_loop()
