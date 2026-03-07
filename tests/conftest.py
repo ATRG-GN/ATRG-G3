@@ -1,7 +1,11 @@
-import pytest
 import asyncio
+import inspect
+
+import pytest
+
 from core.aether_conductor import AetherConductor
-from core.signature import OriginMetadata, AISource
+from core.signature import AISource
+
 
 
 def pytest_configure(config):
@@ -34,28 +38,46 @@ def pytest_pyfunc_call(pyfuncitem):
 
 @pytest.fixture(scope="session")
 def event_loop():
-    """Create an instance of the default event loop for each test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
+    loop = asyncio.new_event_loop()
     yield loop
     loop.close()
 
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "asyncio: mark test as async and run in local event loop")
+
+
+def pytest_pyfunc_call(pyfuncitem):
+    if "asyncio" not in pyfuncitem.keywords:
+        return None
+
+    test_func = pyfuncitem.obj
+    if not inspect.iscoroutinefunction(test_func):
+        return None
+
+    testargs = {name: pyfuncitem.funcargs[name] for name in pyfuncitem._fixtureinfo.argnames}
+
+    loop = pyfuncitem.funcargs.get("event_loop")
+    if loop is None:
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(test_func(**testargs))
+        finally:
+            loop.close()
+        return True
+
+    loop.run_until_complete(test_func(**testargs))
+    return True
+
+
 @pytest.fixture
 def clean_conductor():
-    """Returns a clean AetherConductor instance for each test.
-
-    Since AetherConductor is a singleton, we need to reset its state
-    between tests to ensure isolation.
-    """
-    # Reset the singleton instance (if possible, or just clear channels)
-    # The current implementation of AetherConductor uses __new__ for singleton.
-    # We can clear the state of the existing instance.
-
     conductor = AetherConductor()
     conductor.channels.clear()
     conductor._background_tasks.clear()
     conductor.trust_scores = {
         AISource.HUMAN_ARCHITECT: 100,
         AISource.GEMINI_CORE: 95,
-        AISource.UNKNOWN_ECHO: 10
+        AISource.UNKNOWN_ECHO: 10,
     }
     return conductor

@@ -11,7 +11,7 @@ def _normalize_for_signature(value: Any) -> Any:
         return value.isoformat()
     if isinstance(value, dict):
         return {k: _normalize_for_signature(v) for k, v in sorted(value.items())}
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return [_normalize_for_signature(item) for item in value]
     return value
 
@@ -65,7 +65,6 @@ class AkashicLedger:
         if len(self._chain) > 0:
             last_record = self._chain[-1]
             expected_previous_hash = last_record.signature
-
             if envelope.previous_hash != expected_previous_hash:
                 raise ValueError("Invalid previous_hash: expected hash of the latest record")
 

@@ -172,7 +172,7 @@ class KnowledgeCentricProcessor:
             return "The Void", 0.0
 
         best_key = ""
-        max_sim = -1.0
+        max_sim = 0.0
 
         for key, vector in self.knowledge_base.items():
             # Calculate Cosine Similarity
@@ -193,4 +193,4 @@ class KnowledgeCentricProcessor:
                 max_sim = similarity
                 best_key = key
 
-        return best_key, float(max_sim) if max_sim > 0 else 0.0
+        return best_key, float(max_sim)
