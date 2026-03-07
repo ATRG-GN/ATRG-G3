@@ -1,107 +1,94 @@
-# ... (ส่วน import และ dataclasses GemOfWisdom, MorphologicalMapper) ...
+import asyncio
+import re
+from typing import List
 
-class AkashicRecord:
-    # ... (ส่วน init และ add_core_truth) ...
-    def __init__(self):
-        self.field_memory: List[GemOfWisdom] = [] # แก้ไข: กำหนด list ว่าง
-        self.core_pangenes: List[GemOfWisdom] = [] # แก้ไข: กำหนด list ว่าง
-        self.mapper = MorphologicalMapper()
-    # ... (ส่วน store_gem) ...
-    def retrieve_resonance(self, query: str) -> List[Tuple[float, str]]:
-        # ...
-        query_wave = self.mapper.encode(query)
-        results: List[Tuple[float, str]] = [] # แก้ไข: กำหนด list ว่างพร้อม type hint
-        # ...
-        results.sort(key=lambda x: x[0], reverse=True) # ปรับให้เรียงตาม score (index 0)
-        return results[:5]
+from agents.base_agent import BaseAgent
+from core.envelope import Envelope, AetherIntent
+from core.knowledge_base import SimpleKnowledgeGraph
+from core.knowledge_processor import KnowledgeCentricProcessor, SimpleVectorDB
 
-class SopanReasoner:
-    def __init__(self, akashic_record: AkashicRecord):
-        self.memory = akashic_record
-        self.current_step = 0
-        self.thought_history: List[str] = [] # แก้ไข: กำหนด list ว่าง
-        self.model_name = "gemini-3-pro-preview"
-        self.thinking_level = "high"
-    # ... (ส่วน _generate_thought_signature) ...
-    def ascend_ladder(self, user_query: str):
-        # ... (Step 1: Shravana) ...
-        resonant_data = self.memory.retrieve_resonance(user_query)
-        context_list = [content for score, content in resonant_data]
-        context_str = "\n".join(context_list) # แก้ไข: ระบุ list ที่จะ join
-        # ... (Step 2-4) ...
-        return final_response
 
-# ==============================================================================
-# PART 3: AGIO SAGE MAIN EXECUTION
-# ==============================================================================
+class AgioSageAgent(BaseAgent):
+    """AGIO mock reasoning agent used by governance and simulation tests."""
 
-class AgioSageAgent:
-    def __init__(self, kcp, constitution, reasoning_engine):
-        print("Initializing AgioSageAgent Architecture...")
-        self.kcp = kcp # ต้องรับ Dependency เข้ามา
-        self.constitution = constitution
-        self.reasoning_engine = reasoning_engine
-        self.agent_id = "AGIO_Sage"
-        self.akashic = AkashicRecord()
-        
-        # Seed Core Pangenes
-        self.akashic.add_core_truth("Human safety and agency must be preserved.")
-        self.akashic.add_core_truth("Truthfulness and causal consistency are mandatory.")
-        self.akashic.add_core_truth("Harmful actions are strictly prohibited.")
-        
-        self.reasoner = SopanReasoner(self.akashic)
+    def __init__(self, conductor):
+        super().__init__("AGIO_Sage_001", conductor)
+        self.graph = SimpleKnowledgeGraph()
+        self.graph.load_mock_data()
+        self.kcp = KnowledgeCentricProcessor(self.graph, SimpleVectorDB(self.graph))
+        self.memory: List[dict] = []
+        self.is_reflecting = False
 
-    # *** ฟังก์ชันหลักที่ท่านต้องการผนวก ***
-    async def handle_query(self, envelope): # Envelope, AetherIntent, publish, etc., ต้องถูกกำหนดไว้ภายนอก
-        """
-        ประมวลผลคำสั่งผ่านกระบวนการ Sopan Protocol ขั้นที่ 3 (Resonance)
-        และบังคับใช้ Inviolable Governance ก่อนส่งผลลัพธ์
-        """
-        query = envelope.payload.get("query")
-        flow_id = envelope.flow_id
-        
-        # 1. KCP Synthesize (ดึงความรู้จากคัมภีร์ - Wisdom Retrieval)
-        # ใช้วิธีดึงข้อมูลที่ละเอียดกว่า (Synthesize) แทนการใช้ retrieve_resonance ตรงๆ
-        wisdom_context = await self.kcp.synthesize_wisdom(query)
-        
-        # 2. Reasoning Execution (เชื่อมต่อ Cortex ภายนอก)
-        try:
-            raw_thought = await self.reasoning_engine.generate(
-                prompt=query, 
-                context=wisdom_context
-            )
-        except Exception as e:
-            # (จำลองการจัดการ Error)
-            return 
+    async def start(self):
+        await self.subscribe("query.knowledge.retrieve", self.handle_query)
 
-        # 3. Inspira Check (ตรวจสอบเจตนาตามรัฐธรรมนูญ) [Inviolable Governance]
-        # นี่คือ Audit Gate ที่ป้องกันความเสียหาย 
-        is_safe, violation_reason = self.constitution.validate_intent(raw_thought)
-
-        if not is_safe:
-            # 4. RSI Feedback Loop (วงจรแก้ไขตนเอง)
-            # ส่ง 'Infraction' ไปยัง PangenesAgent (ผ่าน AetherBus จำลอง)
-            infraction_payload = (
-                ("source", self.agent_id),
-                ("input", query),
-                ("violation", violation_reason),
-                ("context", wisdom_context)
-            )
-            # (จำลอง: await self.publish("feedback.rsi.infraction", ...))
-            
-            # ตอบกลับผู้ใช้ว่าถูกระงับ
-            safe_response = (("status", "BLOCKED"), ("reason", violation_reason))
-            # (จำลอง: await self.publish("query.response", ...))
+    async def think_about(self, query: str):
+        if self.is_reflecting:
             return
 
-        # 5. Crystallization (ผนึกความจริง - Immutable Payload)
-        final_payload = (
-            ("status", "SAFE"),
-            ("wisdom", raw_thought),
-            ("source", "AGIO_Sage_Cortex"),
-            ("ref_id", flow_id)
-        )
-        # (จำลอง: await self.publish("query.response", ...))
-        
-        return final_payload # ส่งผลลัพธ์ที่ปลอดภัยออกไป
+        wisdom = await self.kcp.synthesize_wisdom(query)
+        thought = self._simulate_llm_generation(wisdom)
+        self.memory.append({"query": query, "content": thought})
 
+        await self.publish(
+            "cognition.thought_stream",
+            AetherIntent.SHARE_INFO,
+            {"query": query, "content": thought, "_security_context": "Generated by AGIO-CODEX"},
+        )
+        await asyncio.sleep(0)
+        return thought
+
+    async def handle_query(self, envelope: Envelope):
+        query = envelope.payload.get("query", "")
+        thought = await self.think_about(query)
+
+        if thought and "[UNKNOWN THOUGHT]" not in thought:
+            status = "SAFE"
+            payload = {"status": status, "wisdom": thought}
+        else:
+            status = "UNSAFE"
+            payload = {"status": status, "reason": "Insufficient trustworthy context"}
+
+        payload["_security_context"] = "AGIO-CODEX System Message"
+        await self.publish("query.response", AetherIntent.SHARE_INFO, payload, envelope.flow_id)
+        await asyncio.sleep(0)
+
+    async def handle_interrupt(self, envelope: Envelope):
+        if envelope.payload.get("target") != self.agent_id:
+            return
+
+        self.is_reflecting = envelope.payload.get("suggested_action") == "PAUSE_AND_REFLECT"
+        reason = envelope.payload.get("reason", "Unknown")
+        context = envelope.payload.get("context_snapshot", "")
+        self.memory.append(
+            {
+                "query": "interrupt",
+                "content": f"[CORRECTION] {reason}: {context}",
+            }
+        )
+
+    def _extract_thesis(self, text: str) -> str:
+        match = re.search(r"PERSPECTIVE A \(Thesis\)\s*-\s*(.+)", text, re.IGNORECASE)
+        return match.group(1).strip() if match else "Profit"
+
+    def _extract_antithesis(self, text: str) -> str:
+        match = re.search(r"PERSPECTIVE B \(Antithesis/Challenge\)\s*-\s*(.+)", text, re.IGNORECASE)
+        return match.group(1).strip() if match else "Ethics"
+
+    def _simulate_llm_generation(self, context_prompt: str) -> str:
+        lower = context_prompt.lower()
+        if "synthesis task" in lower:
+            thesis = self._extract_thesis(context_prompt)
+            antithesis = self._extract_antithesis(context_prompt)
+            return (
+                "[DIALECTICAL THOUGHT] "
+                f"Balancing '{thesis}' with '{antithesis}' yields sustainable progress."
+            )
+
+        if "no relevant knowledge" in lower:
+            return "[UNKNOWN THOUGHT] Unable to derive reliable answer from current context."
+
+        if "relevant knowledge" in lower:
+            return "[DIRECT THOUGHT] Retrieved stable knowledge and answered directly."
+
+        return "[UNKNOWN THOUGHT] Unable to derive reliable answer from current context."
