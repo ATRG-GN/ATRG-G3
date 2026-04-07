@@ -16,19 +16,54 @@ concurrency:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      pages_enabled: ${{ steps.pages-status.outputs.enabled }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Check whether GitHub Pages is enabled
+        id: pages-status
+        uses: actions/github-script@v8
+        with:
+          script: |
+            try {
+              await github.rest.repos.getPages({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              core.setOutput('enabled', 'true');
+              core.info('GitHub Pages is enabled. Proceeding with deployment.');
+            } catch (error) {
+              if (error.status === 404) {
+                core.setOutput('enabled', 'false');
+                core.warning('GitHub Pages is not enabled for this repository. Skipping deployment.');
+                return;
+              }
+              throw error;
+            }
+
       - name: Setup Pages
+        if: steps.pages-status.outputs.enabled == 'true'
         uses: actions/configure-pages@v5
+
       - name: Upload artifact
+        if: steps.pages-status.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: '.'
+
       - name: Deploy to GitHub Pages
+        if: steps.pages-status.outputs.enabled == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Pages not enabled notice
+        if: steps.pages-status.outputs.enabled != 'true'
+        run: |
+          echo "GitHub Pages is not enabled for this repository."
+          echo "Enable Pages in Settings > Pages and set source to GitHub Actions to deploy this workflow."
