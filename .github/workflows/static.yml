@@ -28,7 +28,7 @@ jobs:
 
       - name: Check whether GitHub Pages is enabled
         id: pages-status
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             try {
