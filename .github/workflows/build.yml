@@ -27,6 +27,6 @@ jobs:
           PYTHONPATH=. pytest --cov=.
 
       - name: 📤 Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: .
